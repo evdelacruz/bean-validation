@@ -1,2 +1,2 @@
 # bean-validation
-Service layer validation using JSR-303
+Bean Validation example in service layer using (+**JSR-303**)
