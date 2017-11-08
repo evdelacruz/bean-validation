@@ -6,14 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import javax.validation.ElementKind;
-import javax.validation.Path;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import static com.evdelacruz.samples.beanvalidation.util.constraint.ConstraintViolationUtils.*;
 import static org.springframework.http.ResponseEntity.*;
 
 @ControllerAdvice
@@ -26,22 +22,11 @@ public class GlobalController extends ErrorHandler<ResponseEntity<Error>> {
 
     @Override
     public void initialize(Map<Class<? extends Exception>, Function<Exception, ResponseEntity<Error>>> responses) {
-        responses.put(ConstraintViolationException.class, ex -> badRequest().body(new Error("E3", ((ConstraintViolationException)ex).getConstraintViolations().stream().map(this::convert).collect(Collectors.joining(", ")))));
+        responses.put(ConstraintViolationException.class, ex -> badRequest().body(new Error("E3", extractFields(((ConstraintViolationException)ex).getConstraintViolations()))));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Error> handleException(Exception ex) {
         return this.handleError(ex);
     }
-
-    //<editor-fold desc="Description">
-    private String convert(ConstraintViolation<?> violation) {
-        Iterator<Path.Node> it = violation.getPropertyPath().iterator();
-        Path.Node node;
-        do {
-            node = it.next();
-        } while (it.hasNext() && node.getKind() != ElementKind.PROPERTY);
-        return node.getName();
-    }
-    //</editor-fold>
 }
